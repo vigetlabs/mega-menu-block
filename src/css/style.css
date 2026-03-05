@@ -1,0 +1,47 @@
+/**
+ * Mega Menu Block Frontend Styles
+ *
+ * @package MegaMenuBlock
+ */
+
+/**
+ * Mega Menu Container
+ * Integrates with Navigation block's submenu structure
+ */
+.wp-block-mega-menu {
+	position: relative;
+	width: 100%;
+}
+
+/**
+ * Ensure proper display within Navigation submenu container
+ * This will be controlled by the parent Navigation block's settings
+ */
+.wp-block-navigation__submenu-container .wp-block-mega-menu {
+	display: block;
+}
+
+/**
+ * Responsive behavior
+ * Mega menu should stack on mobile, display as grid/columns on desktop
+ */
+@media (min-width: 782px) {
+	.wp-block-mega-menu {
+		/* Allow flexible layout for inner blocks */
+		display: flex;
+		flex-direction: column;
+	}
+}
+
+/**
+ * Ensure inner blocks have proper spacing
+ */
+.wp-block-mega-menu > * {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+.wp-block-mega-menu > * + * {
+	margin-top: 1rem;
+}
+

@@ -1,0 +1,37 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "mega-menu-block/mega-menu",
+	"title": "Mega Menu",
+	"category": "theme",
+	"description": "A mega menu block that can be added as a child of Navigation items, allowing any blocks to be inserted inside.",
+	"keywords": [
+		"menu",
+		"mega",
+		"navigation",
+		"submenu",
+    "dropdown"
+	],
+	"textdomain": "mega-menu-block",
+	"parent": [
+		"core/navigation-link",
+		"core/navigation-submenu"
+	],
+	"supports": {
+		"html": false,
+		"align": false,
+		"innerBlocks": true,
+		"color": {
+			"background": true,
+			"text": true
+		},
+		"spacing": {
+			"margin": true,
+			"padding": true
+		}
+	},
+	"editorScript": "file:./build/index.js",
+	"editorStyle": "file:./build/editor.css",
+	"style": "file:./build/style.css"
+}
+

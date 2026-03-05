@@ -1,0 +1,104 @@
+/**
+ * Mega Menu Block Editor Styles
+ *
+ * @package MegaMenuBlock
+ */
+
+/**
+ * Editor-specific styling for the Mega Menu block
+ * Should align with Navigation submenu structure
+ * Make Mega Menu full width in editor using fixed positioning
+ */
+.wp-block-mega-menu {
+	border: 1px dashed #ccc;
+	padding: 1rem;
+	margin: 0;
+	background-color: #f9f9f9;
+	min-height: 50px;
+	position: fixed;
+	left: 0;
+	right: 0;
+	width: 100vw;
+	top: auto;
+	z-index: 1000;
+	box-sizing: border-box;
+}
+
+/**
+ * Visual indicator when block is selected
+ */
+.wp-block-mega-menu.is-selected {
+	border-color: #0073aa;
+	border-style: solid;
+	background-color: #fff;
+}
+
+/**
+ * When inside Navigation submenu container, adjust positioning
+ */
+.wp-block-navigation__submenu-container .wp-block-mega-menu {
+	position: fixed;
+	left: 0;
+	right: 0;
+	width: 100vw;
+	top: auto;
+	z-index: 1000;
+}
+
+/**
+ * Remove border from submenu container when it contains a Mega Menu block
+ */
+.wp-block-navigation .wp-block-navigation__submenu-container:has(.wp-block-mega-menu) {
+	border: 0;
+}
+
+/**
+ * Hide Submenu appender when adjacent to Mega Menu block
+ */
+.wp-block-mega-menu + .block-list-appender {
+	display: none !important;
+}
+
+/**
+ * Inner blocks area styling
+ * Add padding-bottom to ensure Mega Menu appender doesn't overlap with content
+ */
+.wp-block-mega-menu > .block-editor-inner-blocks {
+	width: 100%;
+	padding-bottom: 3rem; /* Space for the appender button */
+	min-height: 100px; /* Ensure minimum height for empty blocks */
+	position: relative; /* Ensure proper positioning context */
+}
+
+/**
+ * Block inserter button styling
+ * Position as small square button in bottom right corner
+ * Target the direct appender of the Mega Menu block itself
+ */
+.wp-block-mega-menu > .block-list-appender {
+	position: absolute !important;
+	bottom: 0.5rem !important;
+	right: 0.5rem !important;
+	margin: 0 !important;
+	display: block !important;
+	visibility: visible !important;
+	opacity: 1 !important;
+	width: auto !important;
+	z-index: 10;
+}
+
+/**
+ * Ensure appender button is visible and styled as small square
+ * Target the direct appender of the Mega Menu block itself
+ */
+.wp-block-navigation__submenu-container .wp-block-mega-menu .block-list-appender {
+	display: block;
+}
+
+/**
+ * Ensure child blocks have proper height and visibility
+ */
+.wp-block-mega-menu .block-editor-inner-blocks .block-editor-block-list__block {
+	min-height: 50px;
+	position: relative;
+}
