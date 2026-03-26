@@ -3,7 +3,7 @@ Contributors: viget, briandichiara
 Tags: blocks, navigation, menu, mega-menu, gutenberg
 Requires at least: 6.0
 Tested up to: 6.9
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,9 @@ Yes! The Mega Menu block behaves like the core Group block and allows any availa
 Yes, the Mega Menu honors the Navigation block's submenu settings, including hover/click behavior and overlay menu settings.
 
 == Changelog ==
+
+= 1.0.1 =
+* Fixed a scroll issue in the full site editor.
 
 = 1.0.0 =
 * Initial release

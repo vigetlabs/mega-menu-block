@@ -6,20 +6,20 @@
 
 /**
  * Editor-specific styling for the Mega Menu block
- * Should align with Navigation submenu structure
- * Make Mega Menu full width in editor using fixed positioning
+ * Should align with Navigation submenu structure.
+ *
+ * Scroll fix: use `position: relative` on the mega menu itself (not `fixed`) so
+ * it participates in the submenu container’s height. Do not reset the submenu
+ * wrapper — that breaks the theme’s flex/absolute layout in the Site Editor.
  */
-.wp-block-mega-menu {
+ .wp-block-mega-menu {
 	border: 1px dashed #ccc;
 	padding: 1rem;
 	margin: 0;
 	background-color: #f9f9f9;
 	min-height: 50px;
-	position: fixed;
-	left: 0;
-	right: 0;
-	width: 100vw;
-	top: auto;
+	position: relative;
+	width: 100%;
 	z-index: 1000;
 	box-sizing: border-box;
 }
@@ -34,14 +34,15 @@
 }
 
 /**
- * When inside Navigation submenu container, adjust positioning
+ * When inside Navigation submenu: stay in document flow (not fixed) so the
+ * submenu panel grows with content and the iframe can scroll to the bottom.
+ * Leave submenu container positioning to the theme / core Navigation styles.
  */
 .wp-block-navigation__submenu-container .wp-block-mega-menu {
-	position: fixed;
-	left: 0;
-	right: 0;
-	width: 100vw;
-	top: auto;
+	position: relative;
+	left: auto;
+	right: auto;
+	width: 100%;
 	z-index: 1000;
 }
 
