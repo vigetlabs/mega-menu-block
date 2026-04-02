@@ -100,9 +100,32 @@ registerBlockType( 'mega-menu-block/mega-menu', {
 			templateLock: false,
 			orientation: 'vertical',
 			renderAppender: InnerBlocks.ButtonBlockAppender,
-			// Default template with a paragraph block.
+			// Default 3-column mega menu template.
 			template: [
-				[ 'core/paragraph', { placeholder: 'Add content or type / to build mega menu...' } ],
+				[ 'core/columns', { templateLock: 'insert' }, [
+					[ 'core/column', {
+						className: 'mega-menu__intro',
+						allowedBlocks: [ 'core/heading', 'core/paragraph' ],
+						lock: { move: true, remove: true },
+					}, [
+						[ 'core/heading', { level: 3, placeholder: 'Section heading…' } ],
+						[ 'core/paragraph', { placeholder: 'Brief description of this section.' } ],
+					] ],
+					[ 'core/column', {
+						className: 'mega-menu__primary',
+						allowedBlocks: [ 'acf/icon-button' ],
+						lock: { move: true, remove: true },
+					}, [
+						[ 'acf/icon-button' ],
+					] ],
+					[ 'core/column', {
+						className: 'mega-menu__secondary',
+						allowedBlocks: [ 'core/navigation' ],
+						lock: { move: true, remove: true },
+					}, [
+						[ 'core/navigation', { overlayMenu: 'never' } ],
+					] ],
+				] ],
 			],
 		} );
 
@@ -350,11 +373,10 @@ function enhanceNavigationBlockEdit( BlockEdit ) {
 
 		// Use a ref to track if we've already set the initial menu to avoid loops.
 		const hasSetInitialMenu = useRef( false );
-		// Track if this is the first render to maintain focus on initial insertion.
+		// Track first mount so we only sync overlayMenu once (avoid update loops).
 		const isFirstRender = useRef( true );
 
-		// Get block editor dispatch to update attributes and maintain selection.
-		const { updateBlockAttributes: updateBlockAttrs, selectBlock } = useDispatch(
+		const { updateBlockAttributes: updateBlockAttrs } = useDispatch(
 			'core/block-editor'
 		);
 
@@ -379,24 +401,16 @@ function enhanceNavigationBlockEdit( BlockEdit ) {
 					.then( ( newMenuId ) => {
 						if ( newMenuId ) {
 							// Update attributes including overlayMenu set to 'never' (off).
-							// Update in a way that maintains focus on the block.
 							updateBlockAttrs( clientId, {
 								ref: newMenuId,
 								overlayMenu: 'never',
 							} );
-
-							// Maintain focus on the Navigation block after update.
-							// Use a small delay to ensure the update has processed.
-							setTimeout( () => {
-								selectBlock( clientId );
-							}, 50 );
 						}
 					} )
 					.catch( () => {
 						// Silently handle errors.
 					} );
 			} else if ( isInMegaMenu && isFirstRender.current ) {
-				// Even if menu is already set, maintain focus on first render.
 				isFirstRender.current = false;
 				// Ensure overlayMenu is set to 'never' if not already set.
 				const currentOverlayMenu = attributes?.overlayMenu;
@@ -405,10 +419,6 @@ function enhanceNavigationBlockEdit( BlockEdit ) {
 						overlayMenu: 'never',
 					} );
 				}
-				// Maintain focus on the Navigation block.
-				setTimeout( () => {
-					selectBlock( clientId );
-				}, 50 );
 			}
 		}, [
 			isInMegaMenu,
@@ -419,7 +429,6 @@ function enhanceNavigationBlockEdit( BlockEdit ) {
 			allBlocks,
 			allNavigationMenus,
 			updateBlockAttrs,
-			selectBlock,
 			saveEntityRecord,
 			attributes?.overlayMenu,
 		] );
