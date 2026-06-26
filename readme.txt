@@ -46,9 +46,6 @@ Yes, the Mega Menu honors the Navigation block's submenu settings, including hov
 
 == Changelog ==
 
-= 1.0.1 =
-* Fixed a scroll issue in the full site editor.
-
 = 1.0.0 =
 * Initial release
 * Mega Menu block registration

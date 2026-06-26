@@ -17,6 +17,11 @@
 		"core/navigation-link",
 		"core/navigation-submenu"
 	],
+	"attributes": {
+		"ref": {
+			"type": "integer"
+		}
+	},
 	"supports": {
 		"html": false,
 		"align": false,

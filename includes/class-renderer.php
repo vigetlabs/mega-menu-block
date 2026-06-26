@@ -55,8 +55,26 @@ class Renderer {
 		// Sanitize attributes.
 		$attributes = self::sanitize_attributes( $attributes );
 
-		// Get inner blocks content.
-		$inner_blocks_html = self::render_inner_blocks( $block, $content );
+		if ( ! empty( $attributes['ref'] ) ) {
+			// Entity mode: content is stored in a wp_block post, not inline.
+			// Rendering separately via do_blocks() avoids the nested-Navigation conflict
+			// that occurs when inner blocks are part of the outer wp_navigation post.
+			$ref           = absint( $attributes['ref'] );
+			$wp_block_post = get_post( $ref );
+
+			if (
+				$wp_block_post instanceof WP_Post &&
+				'wp_block' === $wp_block_post->post_type &&
+				\in_array( $wp_block_post->post_status, [ 'publish', 'private' ], true )
+			) {
+				$inner_blocks_html = do_blocks( $wp_block_post->post_content );
+			} else {
+				$inner_blocks_html = '';
+			}
+		} else {
+			// Legacy mode: inner blocks are serialized inline in the navigation post.
+			$inner_blocks_html = self::render_inner_blocks( $block, $content );
+		}
 
 		// If no inner blocks, return empty string.
 		if ( empty( $inner_blocks_html ) ) {

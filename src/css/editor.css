@@ -4,102 +4,399 @@
  * @package MegaMenuBlock
  */
 
-/**
- * Editor-specific styling for the Mega Menu block
- * Should align with Navigation submenu structure.
- *
- * Scroll fix: use `position: relative` on the mega menu itself (not `fixed`) so
- * it participates in the submenu container’s height. Do not reset the submenu
- * wrapper — that breaks the theme’s flex/absolute layout in the Site Editor.
- */
- .wp-block-mega-menu {
-	border: 1px dashed #ccc;
-	padding: 1rem;
+/* ── Mega Menu block placeholder in the Navigation editor ─────────────────── */
+
+.wp-block-mega-menu {
+	border: 1px dashed #949494;
+	box-sizing: border-box;
 	margin: 0;
-	background-color: #f9f9f9;
 	min-height: 50px;
+	padding: 0.5rem;
 	position: relative;
 	width: 100%;
 	z-index: 1000;
-	box-sizing: border-box;
 }
 
-/**
- * Visual indicator when block is selected
- */
 .wp-block-mega-menu.is-selected {
-	border-color: #0073aa;
+	border-color: var(--wp-admin-theme-color, #007cba);
 	border-style: solid;
-	background-color: #fff;
 }
 
-/**
- * When inside Navigation submenu: stay in document flow (not fixed) so the
- * submenu panel grows with content and the iframe can scroll to the bottom.
- * Leave submenu container positioning to the theme / core Navigation styles.
- */
 .wp-block-navigation__submenu-container .wp-block-mega-menu {
-	position: relative;
 	left: auto;
+	position: relative;
 	right: auto;
 	width: 100%;
 	z-index: 1000;
 }
 
-/**
- * Remove border from submenu container when it contains a Mega Menu block
- */
 .wp-block-navigation .wp-block-navigation__submenu-container:has(.wp-block-mega-menu) {
 	border: 0;
 }
 
-/**
- * Hide Submenu appender when adjacent to Mega Menu block
- */
 .wp-block-mega-menu + .block-list-appender {
 	display: none !important;
 }
 
-/**
- * Inner blocks area styling
- * Add padding-bottom to ensure Mega Menu appender doesn't overlap with content
- */
-.wp-block-mega-menu > .block-editor-inner-blocks {
+/* ── Inline placeholder (entity mode — no inner blocks in Navigation) ─────── */
+
+.wp-block-mega-menu__placeholder {
+	align-items: center;
+	background: #f6f7f7;
+	border-radius: 4px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	justify-content: center;
+	min-height: 80px;
+	padding: 1rem;
+	text-align: center;
 	width: 100%;
-	padding-bottom: 3rem; /* Space for the appender button */
-	min-height: 100px; /* Ensure minimum height for empty blocks */
-	position: relative; /* Ensure proper positioning context */
 }
 
-/**
- * Block inserter button styling
- * Position as small square button in bottom right corner
- * Target the direct appender of the Mega Menu block itself
+.wp-block-mega-menu__placeholder-icon {
+	color: #757575;
+	display: block;
+	line-height: 0;
+}
+
+.wp-block-mega-menu__placeholder-icon svg {
+	height: 32px;
+	width: 32px;
+}
+
+.wp-block-mega-menu__placeholder-label {
+	color: #1d2327;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+/* ── Legacy notice ────────────────────────────────────────────────────────── */
+
+.wp-block-mega-menu__legacy-notice {
+	background: #fcf0d7;
+	border: 1px dashed #dba617;
+	border-radius: 4px;
+	color: #614200;
+	font-size: 12px;
+	padding: 0.75rem 1rem;
+	text-align: center;
+}
+
+/* ── Full-screen editor modal shell ───────────────────────────────────────── */
+
+/*
+ * The WP Modal component applies padding-top to .components-modal__content to
+ * make room for its header. We hide the header, so we must zero out that padding.
+ * !important is needed to beat WP's inline-style or higher-specificity rule.
  */
-.wp-block-mega-menu > .block-list-appender {
-	position: absolute !important;
-	bottom: 0.5rem !important;
-	right: 0.5rem !important;
-	margin: 0 !important;
-	display: block !important;
-	visibility: visible !important;
-	opacity: 1 !important;
-	width: auto !important;
+.components-modal__frame.wp-block-mega-menu__editor-modal {
+	overflow: hidden;
+}
+
+.wp-block-mega-menu__editor-modal .components-modal__header {
+	display: none;
+}
+
+.wp-block-mega-menu__editor-modal .components-modal__content {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	margin-bottom: 0 !important;
+	margin-top: 0 !important;
+	overflow: hidden;
+	padding: 0 !important;
+}
+
+/* ── Editor root ──────────────────────────────────────────────────────────── */
+
+.wp-block-mega-menu__editor {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	overflow: hidden;
+}
+
+/* ── Toolbar (dark top bar matching FSE) ─────────────────────────────────── */
+
+.wp-block-mega-menu__editor-toolbar {
+	align-items: center;
+	background: #1e1e1e;
+	display: flex;
+	flex-shrink: 0;
+	height: 48px;
+	padding: 0 8px;
 	z-index: 10;
 }
 
-/**
- * Ensure appender button is visible and styled as small square
- * Target the direct appender of the Mega Menu block itself
- */
-.wp-block-navigation__submenu-container .wp-block-mega-menu .block-list-appender {
-	display: block;
+.wp-block-mega-menu__toolbar-left,
+.wp-block-mega-menu__toolbar-center,
+.wp-block-mega-menu__toolbar-right {
+	align-items: center;
+	display: flex;
+	gap: 2px;
 }
 
-/**
- * Ensure child blocks have proper height and visibility
- */
-.wp-block-mega-menu .block-editor-inner-blocks .block-editor-block-list__block {
-	min-height: 50px;
+.wp-block-mega-menu__toolbar-left {
+	flex: 1;
+	min-width: 0;
+}
+
+.wp-block-mega-menu__toolbar-center {
+	flex-shrink: 0;
+}
+
+.wp-block-mega-menu__toolbar-right {
+	flex: 1;
+	justify-content: flex-end;
+	min-width: 0;
+}
+
+/* Toolbar icon buttons (dark background) */
+.wp-block-mega-menu__toolbar-btn.components-button {
+	color: #fff;
+	min-width: 36px;
+}
+
+.wp-block-mega-menu__toolbar-btn.components-button:hover,
+.wp-block-mega-menu__toolbar-btn.components-button:focus-visible {
+	background: rgba(255, 255, 255, 0.1);
+	color: #fff;
+}
+
+.wp-block-mega-menu__toolbar-btn.components-button.is-pressed {
+	background: rgba(255, 255, 255, 0.2);
+	color: #fff;
+}
+
+.wp-block-mega-menu__toolbar-btn.components-button:disabled,
+.wp-block-mega-menu__toolbar-btn.components-button[aria-disabled="true"] {
+	color: #fff;
+	opacity: 0.3;
+}
+
+/* Inserter "+" button — slightly larger to match FSE */
+.wp-block-mega-menu__toolbar-btn--inserter.components-button {
+	background: #007cba;
+	border-radius: 2px;
+	color: #fff;
+	height: 32px;
+	min-width: 32px;
+	width: 32px;
+}
+
+.wp-block-mega-menu__toolbar-btn--inserter.components-button:hover {
+	background: #006ba1;
+	color: #fff;
+}
+
+.wp-block-mega-menu__toolbar-btn--inserter.components-button.is-pressed {
+	background: #006ba1;
+	color: #fff;
+}
+
+/* Light variant for list-view close button (renders on white background) */
+.wp-block-mega-menu__toolbar-btn--light.components-button {
+	color: #1e1e1e;
+}
+
+.wp-block-mega-menu__toolbar-btn--light.components-button:hover,
+.wp-block-mega-menu__toolbar-btn--light.components-button:focus-visible {
+	background: rgba(0, 0, 0, 0.06);
+	color: #1e1e1e;
+}
+
+/* Nav context breadcrumb inside toolbar */
+.wp-block-mega-menu__context {
+	align-items: center;
+	display: flex;
+	font-size: 13px;
+	gap: 6px;
+	margin-left: 4px;
+	min-width: 0;
+	overflow: hidden;
+}
+
+.wp-block-mega-menu__context-parent {
+	color: rgba(255, 255, 255, 0.55);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.wp-block-mega-menu__context-sep {
+	color: rgba(255, 255, 255, 0.35);
+	flex-shrink: 0;
+}
+
+.wp-block-mega-menu__context-current {
+	color: #fff;
+	flex-shrink: 0;
+	font-weight: 500;
+}
+
+/* Unsaved-changes indicator */
+.wp-block-mega-menu__unsaved {
+	color: rgba(255, 255, 255, 0.55);
+	font-size: 11px;
+	padding: 0 8px;
+	white-space: nowrap;
+}
+
+/* ── Body (sidebar + canvas + inspector) ─────────────────────────────────── */
+
+.wp-block-mega-menu__editor-body {
+	display: flex;
+	flex: 1;
+	min-height: 0;
+	overflow: hidden;
+}
+
+/* ── Left: Inserter library panel ────────────────────────────────────────── */
+
+.wp-block-mega-menu__editor-inserter {
+	border-right: 1px solid #e0e0e0;
+	flex-shrink: 0;
+	overflow: hidden;
 	position: relative;
+	width: 350px;
+}
+
+/* Absolute-fill so InserterLibrary gets a definite height and can scroll internally */
+.wp-block-mega-menu__editor-inserter > * {
+	bottom: 0;
+	left: 0;
+	overflow: hidden;
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+
+/* ── Left: Document Overview panel ───────────────────────────────────────── */
+
+.wp-block-mega-menu__editor-list-view {
+	border-right: 1px solid #e0e0e0;
+	flex-shrink: 0;
+	overflow: hidden;
+	position: relative;
+	width: 280px;
+}
+
+.wp-block-mega-menu__list-view-header {
+	align-items: center;
+	border-bottom: 1px solid #e0e0e0;
+	display: flex;
+	flex-shrink: 0;
+	height: 48px;
+	justify-content: space-between;
+	padding: 0 4px 0 16px;
+	position: relative;
+	z-index: 1;
+}
+
+.wp-block-mega-menu__list-view-title {
+	color: #1e1e1e;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+/* Absolute-fill below the header so the tree scrolls within fixed bounds. */
+.wp-block-mega-menu__list-view-content {
+	bottom: 0;
+	left: 0;
+	overflow-y: auto;
+	padding: 12px 0 4px 8px;
+	position: absolute;
+	right: 0;
+	top: 48px;
+}
+
+/* WP defaults the tree to calc(100% + 12px) with a negative margin; trim it to
+   prevent a horizontal scrollbar in our narrower 280px sidebar. */
+.wp-block-mega-menu__editor-modal .block-editor-list-view-tree {
+	width: calc(100% + 6px);
+}
+
+/* ── Center: Canvas ───────────────────────────────────────────────────────── */
+
+/*
+ * Canvas is a flex item (in the body row) AND a flex container (row).
+ * The inner flex context is the key: it makes block-editor-block-tools a
+ * flex item with a *definite* cross-axis height (from align-self:stretch),
+ * which lets the iframe's height:100% resolve correctly. Without display:flex
+ * here, block-editor-block-tools would be a plain block child and height:100%
+ * would have no definite containing-block height to resolve against.
+ */
+.wp-block-mega-menu__editor-canvas {
+	background: #f0f0f0;
+	display: flex;
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	position: relative;
+}
+
+/*
+ * BlockTools renders a plain <div> with no className, so we can't target it
+ * by class. It is always the first (and only) direct div child of the canvas.
+ * height/min-height:100% resolves against the canvas's definite cross-axis
+ * height (from the flex-item stretch above). width:100% fills the main axis.
+ */
+.wp-block-mega-menu__editor-canvas > div:first-child {
+	height: 100%;
+	min-height: 100%;
+	overflow: hidden;
+	width: 100%;
+}
+
+/*
+ * The iframe lives somewhere inside that wrapper div. Using a descendant
+ * selector (not >) so it matches regardless of any intermediate React wrappers.
+ * height:100% resolves against the definite height of the wrapper above.
+ */
+.wp-block-mega-menu__editor-canvas iframe {
+	height: 100%;
+	width: 100%;
+}
+
+/* ── Right: Block Settings panel ─────────────────────────────────────────── */
+
+/*
+ * Same absolute-fill trick as the canvas: overflow: hidden on the outer div
+ * (so flex sizing stays predictable) and overflow-y: auto on the inner div
+ * (so BlockInspector's growing content scrolls within fixed bounds).
+ */
+.wp-block-mega-menu__editor-inspector {
+	border-left: 1px solid #e0e0e0;
+	flex-shrink: 0;
+	overflow: hidden;
+	position: relative;
+	width: 280px;
+}
+
+.wp-block-mega-menu__inspector-inner {
+	bottom: 0;
+	left: 0;
+	overflow-y: auto;
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+
+/* ── Footer: block breadcrumb ─────────────────────────────────────────────── */
+
+.wp-block-mega-menu__editor-footer {
+	border-top: 1px solid #e0e0e0;
+	flex-shrink: 0;
+	padding: 0 16px;
+}
+
+.wp-block-mega-menu__editor-footer .block-editor-block-breadcrumb {
+	height: 36px;
+	line-height: 36px;
 }
