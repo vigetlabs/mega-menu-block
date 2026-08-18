@@ -16,7 +16,7 @@
 		"start": "wp-scripts start"
 	},
 	"devDependencies": {
-		"@wordpress/scripts": "^26.0.0",
+		"@wordpress/scripts": "^34.1.0",
 		"raw-loader": "^4.0.2",
 		"webpack-remove-empty-scripts": "^1.0.4"
 	},
