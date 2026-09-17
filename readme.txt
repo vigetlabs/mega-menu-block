@@ -147,6 +147,9 @@ Yes, the Mega Menu honors the Navigation block's submenu settings, including hov
 * Added the `mega_menu_block_positioning_context`, `mega_menu_block_breakpoint`, and `mega_menu_block_max_width` PHP filters.
 * Added the `mega_menu_block_default_template`, `mega_menu_block_default_template_lock`, and `mega_menu_block_default_attributes` PHP filters.
 * Added the `megaMenuBlock.defaultTemplate` and `megaMenuBlock.defaultTemplateLock` JavaScript filters.
+* Checks GitHub releases for plugin updates from the WordPress dashboard.
+* Updated to @wordpress/scripts 30, which also emits RTL stylesheets.
+* Added a POT file, GPL-2.0 license, Composer support, CI, and developer documentation.
 
 = 1.0.1 =
 * Fixed a scroll issue in the full site editor.
