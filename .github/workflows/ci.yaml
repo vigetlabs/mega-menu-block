@@ -28,6 +28,12 @@ jobs:
       - name: Validate composer.json
         run: composer validate --no-check-lock
 
+      # Runs on the minimum supported PHP, so syntax newer than the plugin
+      # header's "Requires PHP" fails here by name instead of as a confusing
+      # PHPCS parse error.
+      - name: Lint PHP syntax
+        run: find . -path ./node_modules -prune -o -name '*.php' -print0 | xargs -0 -n1 -P4 php -l
+
       - name: Install PHP_CodeSniffer + WordPress Coding Standards
         run: |
           composer global config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true

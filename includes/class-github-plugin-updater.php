@@ -336,7 +336,7 @@ class GitHub_Plugin_Updater {
 	 *
 	 * @return string|false Download URL or false if not found.
 	 */
-	private function get_package_url( $release_info ): string|false {
+	private function get_package_url( $release_info ) {
 		if ( ! isset( $release_info->assets ) || ! is_array( $release_info->assets ) ) {
 			return false;
 		}
