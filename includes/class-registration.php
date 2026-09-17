@@ -29,6 +29,9 @@ class Registration {
 		// Enqueue block assets.
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_editor_assets' ] );
 
+		// Output the styles that widen the Mega Menu beyond its Navigation item.
+		Styles::init();
+
 		// Explicitly allow block in Navigation block children.
 		add_filter( 'block_editor_settings_all', [ __CLASS__, 'allow_in_navigation' ], 10, 2 );
 
@@ -47,6 +50,78 @@ class Registration {
 		// Inject nested Navigation blocks back into rendered output.
 		// Use priority 20 to run after WordPress renders the block.
 		add_filter( 'render_block', [ Renderer::class, 'inject_nested_navigation_blocks' ], 20, 2 );
+
+		// Apply the theme's default attributes. Runs late on `init` so that attributes added
+		// by block supports (backgroundColor, textColor, style) are already registered.
+		add_action( 'init', [ __CLASS__, 'register_default_attributes' ], 100 );
+
+		// Block supports read the attributes parsed from the markup, which do not include
+		// registered defaults, so fill them in before the block renders.
+		add_filter( 'render_block_data', [ __CLASS__, 'apply_default_attributes' ], 5 );
+	}
+
+	/**
+	 * Apply the theme's default attributes to the registered block type.
+	 *
+	 * Setting them as registered defaults means the editor shows them on a newly inserted
+	 * block, and WordPress leaves them out of the saved markup.
+	 */
+	public static function register_default_attributes() {
+		$defaults = Template::get_default_attributes();
+
+		if ( empty( $defaults ) ) {
+			return;
+		}
+
+		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( 'mega-menu-block/mega-menu' );
+
+		if ( ! $block_type || ! \is_array( $block_type->attributes ) ) {
+			return;
+		}
+
+		$attributes = $block_type->attributes;
+
+		foreach ( $defaults as $name => $value ) {
+			if ( ! isset( $attributes[ $name ] ) ) {
+				continue;
+			}
+
+			$attributes[ $name ]['default'] = $value;
+		}
+
+		$block_type->attributes = $attributes;
+	}
+
+	/**
+	 * Fill in the theme's default attributes before a Mega Menu block renders.
+	 *
+	 * Only attributes the author has not set are filled, so existing content is untouched.
+	 *
+	 * @param array $parsed_block The parsed block data.
+	 * @return array Modified block data.
+	 */
+	public static function apply_default_attributes( $parsed_block ) {
+		if ( empty( $parsed_block['blockName'] ) || 'mega-menu-block/mega-menu' !== $parsed_block['blockName'] ) {
+			return $parsed_block;
+		}
+
+		$defaults = Template::get_default_attributes();
+
+		if ( empty( $defaults ) ) {
+			return $parsed_block;
+		}
+
+		if ( ! isset( $parsed_block['attrs'] ) || ! \is_array( $parsed_block['attrs'] ) ) {
+			$parsed_block['attrs'] = [];
+		}
+
+		foreach ( $defaults as $name => $value ) {
+			if ( ! isset( $parsed_block['attrs'][ $name ] ) ) {
+				$parsed_block['attrs'][ $name ] = $value;
+			}
+		}
+
+		return $parsed_block;
 	}
 
 	/**
@@ -68,6 +143,27 @@ class Registration {
 		}
 
 		return $settings;
+	}
+
+	/**
+	 * Attach the default template data to the editor script.
+	 *
+	 * Runs before the script is enqueued so the data is inlined ahead of it.
+	 */
+	public static function add_editor_data() {
+		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( 'mega-menu-block/mega-menu' );
+
+		if ( ! $block_type || empty( $block_type->editor_script_handles ) ) {
+			return;
+		}
+
+		foreach ( $block_type->editor_script_handles as $script_handle ) {
+			if ( ! wp_script_is( $script_handle, 'registered' ) ) {
+				continue;
+			}
+
+			wp_add_inline_script( $script_handle, Template::get_inline_script(), 'before' );
+		}
 	}
 
 	/**
@@ -147,6 +243,9 @@ class Registration {
 			);
 		}
 
+		// Expose the default inner blocks template to the editor script.
+		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'add_editor_data' ], 6 );
+
 		// Ensure the script is enqueued in the editor.
 		add_action(
 			'enqueue_block_editor_assets',
@@ -161,4 +260,3 @@ class Registration {
 		);
 	}
 }
-

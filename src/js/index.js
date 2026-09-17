@@ -8,7 +8,7 @@ import { registerBlockType, createBlock } from '@wordpress/blocks';
 import { useBlockProps, InnerBlocks, useInnerBlocksProps, BlockControls } from '@wordpress/block-editor';
 import { ToolbarButton, ToolbarGroup } from '@wordpress/components';
 import { useSelect, useDispatch, select as selectStore, dispatch as dispatchStore } from '@wordpress/data';
-import { addFilter } from '@wordpress/hooks';
+import { addFilter, applyFilters } from '@wordpress/hooks';
 import { useEffect, useRef, useLayoutEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 // Import SVG as raw text using raw-loader
@@ -73,6 +73,34 @@ const MegaMenuIcon = ( { className } ) => {
 };
 
 /**
+ * Get the default inner blocks template for the Mega Menu block.
+ *
+ * The template defaults to a single empty paragraph. Themes can override it in PHP with
+ * the `mega_menu_block_default_template` filter, or in the editor with the
+ * `megaMenuBlock.defaultTemplate` JavaScript filter.
+ *
+ * @return {Array} Block template.
+ */
+function getDefaultTemplate() {
+	const template = window.megaMenuBlockEditorData?.defaultTemplate ?? [
+		[ 'core/paragraph', {} ],
+	];
+
+	return applyFilters( 'megaMenuBlock.defaultTemplate', template );
+}
+
+/**
+ * Get the template lock for the Mega Menu block's inner blocks.
+ *
+ * @return {string|boolean} Template lock value.
+ */
+function getDefaultTemplateLock() {
+	const lock = window.megaMenuBlockEditorData?.defaultTemplateLock ?? false;
+
+	return applyFilters( 'megaMenuBlock.defaultTemplateLock', lock );
+}
+
+/**
  * Register the Mega Menu block.
  */
 registerBlockType( 'mega-menu-block/mega-menu', {
@@ -94,39 +122,13 @@ registerBlockType( 'mega-menu-block/mega-menu', {
 					.filter( ( name ) => name !== 'mega-menu-block/mega-menu' )
 			: null;
 
-		// Use useInnerBlocksProps with a default paragraph template.
+		// Use useInnerBlocksProps with the theme-overridable default template.
 		const innerBlocksProps = useInnerBlocksProps( blockProps, {
 			allowedBlocks: allBlockNames,
-			templateLock: false,
+			templateLock: getDefaultTemplateLock(),
 			orientation: 'vertical',
 			renderAppender: InnerBlocks.ButtonBlockAppender,
-			// Default 3-column mega menu template.
-			template: [
-				[ 'core/columns', { templateLock: 'insert' }, [
-					[ 'core/column', {
-						className: 'mega-menu__intro',
-						allowedBlocks: [ 'core/heading', 'core/paragraph' ],
-						lock: { move: true, remove: true },
-					}, [
-						[ 'core/heading', { level: 3, placeholder: 'Section heading…' } ],
-						[ 'core/paragraph', { placeholder: 'Brief description of this section.' } ],
-					] ],
-					[ 'core/column', {
-						className: 'mega-menu__primary',
-						allowedBlocks: [ 'acf/icon-button' ],
-						lock: { move: true, remove: true },
-					}, [
-						[ 'acf/icon-button' ],
-					] ],
-					[ 'core/column', {
-						className: 'mega-menu__secondary',
-						allowedBlocks: [ 'core/navigation' ],
-						lock: { move: true, remove: true },
-					}, [
-						[ 'core/navigation', { overlayMenu: 'never' } ],
-					] ],
-				] ],
-			],
+			template: getDefaultTemplate(),
 		} );
 
 		return <div { ...innerBlocksProps } />;
