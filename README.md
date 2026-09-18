@@ -1,6 +1,6 @@
 <!-- markdownlint-disable MD033 MD041 -->
 <p align="left">
-  <img src="https://img.shields.io/badge/WordPress-6.0%2B-21759b?logo=wordpress&logoColor=white" alt="WordPress 6.0+">
+  <img src="https://img.shields.io/badge/WordPress-6.6%2B-21759b?logo=wordpress&logoColor=white" alt="WordPress 6.6+">
   <img src="https://img.shields.io/badge/PHP-7.4%2B-777bb4?logo=php&logoColor=white" alt="PHP 7.4+">
   <img src="https://img.shields.io/github/v/release/vigetlabs/mega-menu-block" alt="Latest release">
   <img src="https://img.shields.io/github/actions/workflow/status/vigetlabs/mega-menu-block/ci.yaml?branch=main&label=CI" alt="CI status">

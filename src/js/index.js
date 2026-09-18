@@ -338,7 +338,7 @@ async function createNewMenu( dispatchObject ) {
 		}
 
 		return null;
-	} catch ( error ) {
+	} catch {
 		return null;
 	}
 }

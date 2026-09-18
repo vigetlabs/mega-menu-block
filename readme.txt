@@ -1,8 +1,8 @@
 === Mega Menu Block ===
 Contributors: viget, briandichiara
 Tags: blocks, navigation, menu, mega-menu, gutenberg
-Requires at least: 6.0
-Tested up to: 6.9
+Requires at least: 6.6
+Tested up to: 7.1
 Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -148,8 +148,10 @@ Yes, the Mega Menu honors the Navigation block's submenu settings, including hov
 * Added the `mega_menu_block_default_template`, `mega_menu_block_default_template_lock`, and `mega_menu_block_default_attributes` PHP filters.
 * Added the `megaMenuBlock.defaultTemplate` and `megaMenuBlock.defaultTemplateLock` JavaScript filters.
 * Checks GitHub releases for plugin updates from the WordPress dashboard.
-* Updated to @wordpress/scripts 30, which also emits RTL stylesheets.
+* Stylesheets are now also emitted in RTL variants.
 * Added a POT file, GPL-2.0 license, Composer support, CI, and developer documentation.
+* Updated to @wordpress/scripts 35 and @wordpress/env 11, clearing the outstanding dependency advisories.
+* Raised the minimum WordPress version to 6.6 and tested up to 7.1.
 
 = 1.0.1 =
 * Fixed a scroll issue in the full site editor.
