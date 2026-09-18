@@ -3,7 +3,7 @@
  *
  * Customizes @wordpress/scripts webpack config to output separate CSS files.
  *
- * @package MegaMenuBlock
+ * @package
  */
 
 const RemoveEmptyScriptsPlugin = require( 'webpack-remove-empty-scripts' );
@@ -39,6 +39,24 @@ module.exports = {
 		],
 	},
 
+	// wp-scripts renames extracted CSS to "{cacheGroupKey}-{entry}.css", which turns the
+	// `style` entry into `style-style.css` (and, since wp-scripts 30, `style-style-rtl.css`).
+	// Keep the entry name so block.json's `file:./build/style.css` resolves and WordPress
+	// finds the matching `-rtl.css` on its own.
+	optimization: {
+		...defaultConfig.optimization,
+		splitChunks: {
+			...defaultConfig.optimization.splitChunks,
+			cacheGroups: {
+				...defaultConfig.optimization.splitChunks.cacheGroups,
+				style: {
+					...defaultConfig.optimization.splitChunks.cacheGroups.style,
+					name: ( _, chunks ) => chunks[ 0 ].name,
+				},
+			},
+		},
+	},
+
 	plugins: [
 		...defaultConfig.plugins,
 		new RemoveEmptyScriptsPlugin( {
@@ -47,4 +65,3 @@ module.exports = {
 		} ),
 	],
 };
-

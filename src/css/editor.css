@@ -12,7 +12,7 @@
  * it participates in the submenu container’s height. Do not reset the submenu
  * wrapper — that breaks the theme’s flex/absolute layout in the Site Editor.
  */
- .wp-block-mega-menu {
+.wp-block-mega-menu {
 	border: 1px dashed #ccc;
 	padding: 1rem;
 	margin: 0;
