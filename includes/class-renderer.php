@@ -46,9 +46,9 @@ class Renderer {
 	/**
 	 * Render the mega menu block on the frontend.
 	 *
-	 * @param array     $attributes Block attributes.
-	 * @param string    $content    Block content.
-	 * @param WP_Block  $block      Block instance.
+	 * @param array    $attributes Block attributes.
+	 * @param string   $content    Block content.
+	 * @param WP_Block $block      Block instance.
 	 * @return string Rendered block HTML.
 	 */
 	public static function render( $attributes, $content, $block ) {
@@ -169,7 +169,7 @@ class Renderer {
 	 * @param string  $context The context (not used but required by filter).
 	 * @return WP_Post Modified post object.
 	 */
-	public static function filter_navigation_post_content( $post, $context = null ) {
+	public static function filter_navigation_post_content( $post, $context = null ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the filter signature.
 		// Only process wp_navigation post type.
 		if ( ! $post || 'wp_navigation' !== $post->post_type ) {
 			return $post;
@@ -197,7 +197,7 @@ class Renderer {
 			// Store nested blocks.
 			self::$nested_navigation_blocks[ $storage_key ] = array(
 				'nested_blocks' => $result['nested_blocks'],
-				'menu_ref' => $post->ID,
+				'menu_ref'      => $post->ID,
 				'masked_blocks' => $result['masked_blocks'],
 			);
 
@@ -255,10 +255,10 @@ class Renderer {
 				if ( ! empty( $result['nested_blocks'] ) ) {
 					// Store the nested Navigation blocks for later rendering.
 					// Use menu ref as the key for easier lookup.
-					$storage_key = 'nav-post-' . $menu_ref;
+					$storage_key                                    = 'nav-post-' . $menu_ref;
 					self::$nested_navigation_blocks[ $storage_key ] = array(
 						'nested_blocks' => $result['nested_blocks'],
-						'menu_ref' => $menu_ref,
+						'menu_ref'      => $menu_ref,
 						'masked_blocks' => $result['masked_blocks'],
 					);
 
@@ -384,18 +384,18 @@ class Renderer {
 		$stored_block_id = $menu_ref ? 'nav-post-' . $menu_ref : null;
 
 		// Check if we have nested Navigation blocks to inject (try both IDs).
-		$nested_data = null;
+		$nested_data     = null;
 		$actual_block_id = null;
 
 		if ( $stored_block_id && ! empty( self::$nested_navigation_blocks[ $stored_block_id ] ) ) {
-			$nested_data = self::$nested_navigation_blocks[ $stored_block_id ];
+			$nested_data     = self::$nested_navigation_blocks[ $stored_block_id ];
 			$actual_block_id = $stored_block_id;
 		} elseif ( ! empty( self::$nested_navigation_blocks[ $block_id ] ) ) {
-			$nested_data = self::$nested_navigation_blocks[ $block_id ];
+			$nested_data     = self::$nested_navigation_blocks[ $block_id ];
 			$actual_block_id = $block_id;
 		}
 
-		if ( ! $nested_data || empty( $nested_data['nested_blocks'] ) && $actual_block_id ) {
+		if ( ! $nested_data || ( empty( $nested_data['nested_blocks'] ) && $actual_block_id ) ) {
 			return $block_content;
 		}
 
@@ -456,7 +456,7 @@ class Renderer {
 
 		foreach ( $inner_blocks as $inner_block ) {
 			// Check if this is a Mega Menu block.
-			$is_mega_menu = ! empty( $inner_block['blockName'] ) && 'mega-menu-block/mega-menu' === $inner_block['blockName'];
+			$is_mega_menu             = ! empty( $inner_block['blockName'] ) && 'mega-menu-block/mega-menu' === $inner_block['blockName'];
 			$current_inside_mega_menu = $inside_mega_menu || $is_mega_menu;
 
 			// If we're inside a Mega Menu and find a Navigation block, capture it.
@@ -475,7 +475,7 @@ class Renderer {
 					'innerHTML'    => '<!-- mega-menu-nested-nav-placeholder-' . $placeholder_index . ' -->',
 					'innerContent' => [ '<!-- mega-menu-nested-nav-placeholder-' . $placeholder_index . ' -->' ],
 				];
-				$placeholder_index++;
+				++$placeholder_index;
 				continue;
 			}
 

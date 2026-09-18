@@ -131,7 +131,7 @@ class Registration {
 	 * @param array $context   Editor context.
 	 * @return array Modified settings.
 	 */
-	public static function allow_in_navigation( $settings, $context ) {
+	public static function allow_in_navigation( $settings, $context ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the filter signature.
 		// Ensure our block is allowed in Navigation block contexts.
 		if ( ! isset( $settings['allowedBlockTypes'] ) || true === $settings['allowedBlockTypes'] ) {
 			return $settings;
@@ -249,7 +249,7 @@ class Registration {
 		// Ensure the script is enqueued in the editor.
 		add_action(
 			'enqueue_block_editor_assets',
-			function() use ( $script_handles ) {
+			function () use ( $script_handles ) {
 				foreach ( $script_handles as $script_handle ) {
 					if ( ! wp_script_is( $script_handle, 'enqueued' ) ) {
 						wp_enqueue_script( $script_handle );

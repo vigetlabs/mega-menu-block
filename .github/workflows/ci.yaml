@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  php:
+    name: PHP Lint & Coding Standards
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          coverage: none
+          tools: composer, cs2pr
+
+      - name: Validate composer.json
+        run: composer validate --no-check-lock
+
+      # Runs on the minimum supported PHP, so syntax newer than the plugin
+      # header's "Requires PHP" fails here by name instead of as a confusing
+      # PHPCS parse error.
+      - name: Lint PHP syntax
+        run: find . -path ./node_modules -prune -o -name '*.php' -print0 | xargs -0 -n1 -P4 php -l
+
+      - name: Install PHP_CodeSniffer + WordPress Coding Standards
+        run: |
+          composer global config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+          composer global require --no-progress \
+            "squizlabs/php_codesniffer:^3.9" \
+            "wp-coding-standards/wpcs:^3.0" \
+            "phpcsstandards/phpcsutils:^1.0" \
+            "phpcsstandards/phpcsextra:^1.2"
+          echo "$(composer global config bin-dir --absolute)" >> "$GITHUB_PATH"
+
+      - name: Run PHPCS
+        run: phpcs --standard=.phpcs.xml -q --report=checkstyle . | cs2pr
+
+  js:
+    name: JS/CSS Lint & Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint JS
+        run: npm run lint:js
+
+      - name: Lint CSS
+        run: npm run lint:css
+
+      - name: Build
+        run: npm run build
+
+      - name: Fail if build output is stale
+        run: |
+          if ! git diff --quiet -- build; then
+            echo "::error::build/ is out of date - run 'npm run build' and commit the result"
+            git diff --stat -- build
+            exit 1
+          fi
