@@ -36,7 +36,8 @@
 /**
  * When inside Navigation submenu: stay in document flow (not fixed) so the
  * submenu panel grows with content and the iframe can scroll to the bottom.
- * Leave submenu container positioning to the theme / core Navigation styles.
+ * The submenu container's own offsets are set by MegaMenuBlock\Styles, which
+ * stretches it across the theme's positioning context — leave them alone here.
  */
 .wp-block-navigation__submenu-container .wp-block-mega-menu {
 	position: relative;

@@ -1,6 +1,6 @@
 {
 	"name": "mega-menu-block",
-	"version": "1.0.1",
+	"version": "1.1.0",
 	"description": "A custom WordPress block for mega menus in Navigation blocks",
 	"author": "Viget",
 	"license": "GPL-2.0-or-later",
@@ -24,6 +24,7 @@
 		"@wordpress/block-editor": "^12.0.0",
 		"@wordpress/blocks": "^13.0.0",
 		"@wordpress/element": "^6.0.0",
+		"@wordpress/hooks": "^4.0.0",
 		"@wordpress/i18n": "^5.0.0"
 	}
 }
