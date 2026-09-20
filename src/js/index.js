@@ -1,15 +1,20 @@
 /**
  * Mega Menu Block Editor Script
  *
- * @package MegaMenuBlock
+ * @package
  */
 
 import { registerBlockType, createBlock } from '@wordpress/blocks';
-import { useBlockProps, InnerBlocks, useInnerBlocksProps, BlockControls } from '@wordpress/block-editor';
-import { ToolbarButton, ToolbarGroup } from '@wordpress/components';
-import { useSelect, useDispatch, select as selectStore, dispatch as dispatchStore } from '@wordpress/data';
+import {
+	useBlockProps,
+	InnerBlocks,
+	useInnerBlocksProps,
+	BlockControls,
+} from '@wordpress/block-editor';
+import { ToolbarButton } from '@wordpress/components';
+import { useSelect, useDispatch } from '@wordpress/data';
 import { addFilter, applyFilters } from '@wordpress/hooks';
-import { useEffect, useRef, useLayoutEffect, useState } from '@wordpress/element';
+import { useRef, useLayoutEffect } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 // Import SVG as raw text using raw-loader
 // raw-loader returns the file content as a string (or as default export)
@@ -18,6 +23,10 @@ import megaMenuIconSvgRaw from '../images/mega-menu-icon.svg?raw';
 /**
  * Custom Mega Menu icon component - loads SVG from file
  * This ensures the icon updates automatically when the SVG file is modified.
+ *
+ * @param {Object} props           Component props.
+ * @param {string} props.className Class name applied to the SVG wrapper.
+ * @return {Element} The icon element.
  */
 const MegaMenuIcon = ( { className } ) => {
 	// raw-loader with esModule: false returns the content directly as a string
@@ -28,7 +37,8 @@ const MegaMenuIcon = ( { className } ) => {
 		svgContent = megaMenuIconSvgRaw;
 	} else if ( megaMenuIconSvgRaw && typeof megaMenuIconSvgRaw === 'object' ) {
 		// Module with default export (raw-loader with esModule: true, or other format)
-		svgContent = megaMenuIconSvgRaw.default || megaMenuIconSvgRaw.toString();
+		svgContent =
+			megaMenuIconSvgRaw.default || megaMenuIconSvgRaw.toString();
 	} else {
 		// Fallback: convert to string
 		svgContent = String( megaMenuIconSvgRaw || '' );
@@ -41,9 +51,12 @@ const MegaMenuIcon = ( { className } ) => {
 	if ( ! svgContent || ! svgContent.startsWith( '<svg' ) ) {
 		// Return a fallback icon that matches the SVG file structure
 		return (
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M 1 0.99 L 23 0.99 L 23 4.99 L 1 4.99 L 1 0.99 Z M 10 4.99 L 12 7.99 L 14 4.99 L 10 4.99 Z M 2 8.99 L 22 8.99 L 22 22.99 L 2 22.99 L 2 8.99 Z M 9.979 13.959 L 9.979 18.459 L 10.979 18.459 L 10.979 15.259 L 11.979 16.659 L 12.979 15.259 L 12.979 18.459 L 13.979 18.459 L 13.979 13.959 L 12.765 13.959 L 11.979 15.125 L 11.271 13.959 L 9.979 13.959 Z" fill="currentColor"/>
-      </svg>
+			<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+				<path
+					d="M 1 0.99 L 23 0.99 L 23 4.99 L 1 4.99 L 1 0.99 Z M 10 4.99 L 12 7.99 L 14 4.99 L 10 4.99 Z M 2 8.99 L 22 8.99 L 22 22.99 L 2 22.99 L 2 8.99 Z M 9.979 13.959 L 9.979 18.459 L 10.979 18.459 L 10.979 15.259 L 11.979 16.659 L 12.979 15.259 L 12.979 18.459 L 13.979 18.459 L 13.979 13.959 L 12.765 13.959 L 11.979 15.125 L 11.271 13.959 L 9.979 13.959 Z"
+					fill="currentColor"
+				/>
+			</svg>
 		);
 	}
 
@@ -52,7 +65,10 @@ const MegaMenuIcon = ( { className } ) => {
 		/<svg\s+([^>]*)>/i,
 		( match, attrs ) => {
 			// Remove existing class attribute if present
-			const attrsWithoutClass = attrs.replace( /\s*class\s*=\s*["'][^"']*["']/i, '' );
+			const attrsWithoutClass = attrs.replace(
+				/\s*class\s*=\s*["'][^"']*["']/i,
+				''
+			);
 			// Add our className
 			return `<svg ${ attrsWithoutClass.trim() } class="${ className }">`;
 		}
@@ -101,38 +117,45 @@ function getDefaultTemplateLock() {
 }
 
 /**
+ * Mega Menu block edit component.
+ *
+ * @return {Element} The block's editor markup.
+ */
+function MegaMenuEdit() {
+	const blockProps = useBlockProps( {
+		className: 'wp-block-mega-menu',
+	} );
+
+	// Get all registered blocks to allow any block inside.
+	const allBlocks = useSelect( ( select ) => {
+		return select( 'core/blocks' ).getBlockTypes();
+	}, [] );
+
+	// Get all block names for allowedBlocks, but exclude Mega Menu blocks.
+	const allBlockNames = allBlocks
+		? allBlocks
+				.map( ( block ) => block.name )
+				.filter( ( name ) => name !== 'mega-menu-block/mega-menu' )
+		: null;
+
+	// Use useInnerBlocksProps with the theme-overridable default template.
+	const innerBlocksProps = useInnerBlocksProps( blockProps, {
+		allowedBlocks: allBlockNames,
+		templateLock: getDefaultTemplateLock(),
+		orientation: 'vertical',
+		renderAppender: InnerBlocks.ButtonBlockAppender,
+		template: getDefaultTemplate(),
+	} );
+
+	return <div { ...innerBlocksProps } />;
+}
+
+/**
  * Register the Mega Menu block.
  */
 registerBlockType( 'mega-menu-block/mega-menu', {
 	icon: MegaMenuIcon,
-	edit: ( { attributes, setAttributes, clientId } ) => {
-		const blockProps = useBlockProps( {
-			className: 'wp-block-mega-menu',
-		} );
-
-		// Get all registered blocks to allow any block inside.
-		const allBlocks = useSelect( ( select ) => {
-			return select( 'core/blocks' ).getBlockTypes();
-		}, [] );
-
-		// Get all block names for allowedBlocks, but exclude Mega Menu blocks.
-		const allBlockNames = allBlocks
-			? allBlocks
-					.map( ( block ) => block.name )
-					.filter( ( name ) => name !== 'mega-menu-block/mega-menu' )
-			: null;
-
-		// Use useInnerBlocksProps with the theme-overridable default template.
-		const innerBlocksProps = useInnerBlocksProps( blockProps, {
-			allowedBlocks: allBlockNames,
-			templateLock: getDefaultTemplateLock(),
-			orientation: 'vertical',
-			renderAppender: InnerBlocks.ButtonBlockAppender,
-			template: getDefaultTemplate(),
-		} );
-
-		return <div { ...innerBlocksProps } />;
-	},
+	edit: MegaMenuEdit,
 
 	save: () => {
 		// For dynamic blocks, we use InnerBlocks.Content to save inner blocks.
@@ -145,8 +168,8 @@ registerBlockType( 'mega-menu-block/mega-menu', {
 /**
  * Helper function to get the ancestor Navigation block and its menu ID.
  *
- * @param {string} clientId The current block's client ID.
- * @param {Function} getBlock Get block function from store.
+ * @param {string}   clientId        The current block's client ID.
+ * @param {Function} getBlock        Get block function from store.
  * @param {Function} getBlockParents Get block parents function from store.
  * @return {Object|null} Object with navigationBlock and menuId, or null if not found.
  */
@@ -186,7 +209,7 @@ function getAncestorNavigationBlock( clientId, getBlock, getBlockParents ) {
 			if ( foundMegaMenu && menuId ) {
 				return {
 					navigationBlock: block,
-					menuId: menuId,
+					menuId,
 				};
 			}
 			// Reset foundMegaMenu if we hit a Navigation block before finding a Mega Menu.
@@ -200,8 +223,8 @@ function getAncestorNavigationBlock( clientId, getBlock, getBlockParents ) {
 /**
  * Check if a Navigation block is inside a Mega Menu (or any child of a Mega Menu).
  *
- * @param {string} clientId The Navigation block's client ID.
- * @param {Function} getBlock Get block function from store.
+ * @param {string}   clientId        The Navigation block's client ID.
+ * @param {Function} getBlock        Get block function from store.
  * @param {Function} getBlockParents Get block parents function from store.
  * @return {boolean} True if nested inside a Mega Menu block.
  */
@@ -231,29 +254,21 @@ function isInsideMegaMenu( clientId, getBlock, getBlockParents ) {
 }
 
 /**
- * Check if a Navigation block is inside a Mega Menu that's nested in another Navigation block.
- *
- * @param {string} clientId The Navigation block's client ID.
- * @param {Function} getBlock Get block function from store.
- * @param {Function} getBlockParents Get block parents function from store.
- * @return {boolean} True if nested in Mega Menu > Navigation.
- */
-function isInsideMegaMenuInNavigation( clientId, getBlock, getBlockParents ) {
-	const ancestor = getAncestorNavigationBlock( clientId, getBlock, getBlockParents );
-	return ancestor !== null;
-}
-
-/**
  * Get a safe default menu ID that's different from the ancestor menu.
  * First tries to reuse an existing unused menu, then creates a new one if needed.
  *
- * @param {number} ancestorMenuId The ancestor Navigation block's menu ID.
- * @param {Array} navigationMenus Available navigation menus.
- * @param {Function} createMenu Function to create a new menu.
- * @param {Function} getBlocks Function to get all blocks to check for menu usage.
+ * @param {number}   ancestorMenuId  The ancestor Navigation block's menu ID.
+ * @param {Array}    navigationMenus Available navigation menus.
+ * @param {Function} createMenu      Function to create a new menu.
+ * @param {Function} getBlocks       Function to get all blocks to check for menu usage.
  * @return {Promise<number>} A safe menu ID.
  */
-async function getSafeDefaultMenu( ancestorMenuId, navigationMenus, createMenu, getBlocks ) {
+async function getSafeDefaultMenu(
+	ancestorMenuId,
+	navigationMenus,
+	createMenu,
+	getBlocks
+) {
 	if ( ! navigationMenus || navigationMenus.length === 0 ) {
 		// No menus available, create a new one.
 		return await createMenu();
@@ -307,19 +322,23 @@ async function createNewMenu( dispatchObject ) {
 	try {
 		// Create menu with a Page Link as the default inner block instead of Paragraph.
 		// Use a self-closing navigation-link block with proper attributes.
-		const newMenu = await dispatchObject.saveEntityRecord( 'postType', 'wp_navigation', {
-			title: 'Navigation Menu',
-			status: 'publish',
-			content:
-				'<!-- wp:navigation-link {"label":"Page","type":"page","kind":"post-type","url":""} /-->',
-		} );
+		const newMenu = await dispatchObject.saveEntityRecord(
+			'postType',
+			'wp_navigation',
+			{
+				title: 'Navigation Menu',
+				status: 'publish',
+				content:
+					'<!-- wp:navigation-link {"label":"Page","type":"page","kind":"post-type","url":""} /-->',
+			}
+		);
 
 		if ( newMenu && newMenu.id ) {
 			return newMenu.id;
 		}
 
 		return null;
-	} catch ( error ) {
+	} catch {
 		return null;
 	}
 }
@@ -336,7 +355,7 @@ function enhanceNavigationBlockEdit( BlockEdit ) {
 			return <BlockEdit { ...props } />;
 		}
 
-		const { attributes, setAttributes, clientId } = props;
+		const { attributes, clientId } = props;
 		const { ref: menuId } = attributes;
 
 		// Get block editor store functions.
@@ -344,16 +363,21 @@ function enhanceNavigationBlockEdit( BlockEdit ) {
 			const blockEditor = select( 'core/block-editor' );
 			return {
 				getBlock: blockEditor.getBlock.bind( blockEditor ),
-				getBlockParents: blockEditor.getBlockParents.bind( blockEditor ),
+				getBlockParents:
+					blockEditor.getBlockParents.bind( blockEditor ),
 			};
 		}, [] );
 
 		// Get available navigation menus.
 		const allNavigationMenus = useSelect( ( select ) => {
-			return select( 'core' ).getEntityRecords( 'postType', 'wp_navigation', {
-				status: 'publish',
-				per_page: -1,
-			} );
+			return select( 'core' ).getEntityRecords(
+				'postType',
+				'wp_navigation',
+				{
+					status: 'publish',
+					per_page: -1,
+				}
+			);
 		}, [] );
 
 		// Get all blocks to check for menu usage.
@@ -364,7 +388,11 @@ function enhanceNavigationBlockEdit( BlockEdit ) {
 		const { saveEntityRecord } = useDispatch( 'core' );
 
 		// Check if this Navigation block is inside a Mega Menu (or any child of a Mega Menu).
-		const isInMegaMenu = isInsideMegaMenu( clientId, getBlock, getBlockParents );
+		const isInMegaMenu = isInsideMegaMenu(
+			clientId,
+			getBlock,
+			getBlockParents
+		);
 
 		// Check if there's an ancestor Navigation block with a menu.
 		const ancestor = isInMegaMenu
@@ -378,9 +406,8 @@ function enhanceNavigationBlockEdit( BlockEdit ) {
 		// Track first mount so we only sync overlayMenu once (avoid update loops).
 		const isFirstRender = useRef( true );
 
-		const { updateBlockAttributes: updateBlockAttrs } = useDispatch(
-			'core/block-editor'
-		);
+		const { updateBlockAttributes: updateBlockAttrs } =
+			useDispatch( 'core/block-editor' );
 
 		// If inside Mega Menu and (no menu is set OR menu matches ancestor), create a new menu.
 		// Use useLayoutEffect to run synchronously before paint.
@@ -451,7 +478,10 @@ function enhanceNavigationBlockEdit( BlockEdit ) {
 function addMegaMenuToolbarButton( BlockEdit ) {
 	return ( props ) => {
 		// Only add button to Navigation Link and Navigation Submenu blocks.
-		if ( props.name !== 'core/navigation-link' && props.name !== 'core/navigation-submenu' ) {
+		if (
+			props.name !== 'core/navigation-link' &&
+			props.name !== 'core/navigation-submenu'
+		) {
 			return <BlockEdit { ...props } />;
 		}
 
@@ -459,10 +489,13 @@ function addMegaMenuToolbarButton( BlockEdit ) {
 		const { insertBlock, selectBlock } = useDispatch( 'core/block-editor' );
 
 		// Get the current block to check for existing Mega Menu blocks.
-		const currentBlock = useSelect( ( select ) => {
-			const { getBlock } = select( 'core/block-editor' );
-			return getBlock( clientId );
-		}, [ clientId ] );
+		const currentBlock = useSelect(
+			( select ) => {
+				const { getBlock } = select( 'core/block-editor' );
+				return getBlock( clientId );
+			},
+			[ clientId ]
+		);
 
 		// Helper function to find a Mega Menu block in inner blocks recursively.
 		const findMegaMenuBlock = ( block ) => {
@@ -524,5 +557,13 @@ function addMegaMenuToolbarButton( BlockEdit ) {
 }
 
 // Register filters.
-addFilter( 'editor.BlockEdit', 'mega-menu-block/add-mega-menu-toolbar', addMegaMenuToolbarButton );
-addFilter( 'editor.BlockEdit', 'mega-menu-block/navigation-menu-filter', enhanceNavigationBlockEdit );
+addFilter(
+	'editor.BlockEdit',
+	'mega-menu-block/add-mega-menu-toolbar',
+	addMegaMenuToolbarButton
+);
+addFilter(
+	'editor.BlockEdit',
+	'mega-menu-block/navigation-menu-filter',
+	enhanceNavigationBlockEdit
+);

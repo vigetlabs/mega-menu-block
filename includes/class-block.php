@@ -45,6 +45,22 @@ class Block {
 
 		// Initialize block registration.
 		add_action( 'init', [ $this, 'init_blocks' ] );
+
+		// Check for plugin updates from GitHub releases.
+		add_action( 'admin_init', [ $this, 'init_updater' ] );
+	}
+
+	/**
+	 * Check for updates from GitHub releases.
+	 *
+	 * Runs on admin_init so the HTTP request only happens in the dashboard. On
+	 * multisite the updater caches with site transients, so one network-wide
+	 * check covers every site.
+	 */
+	public function init_updater() {
+		require_once MEGA_MENU_BLOCK_PATH . 'includes/class-github-plugin-updater.php';
+
+		new GitHub_Plugin_Updater( MEGA_MENU_BLOCK_PLUGIN_FILE, 'vigetlabs', 'mega-menu-block' );
 	}
 
 	/**
@@ -65,4 +81,3 @@ class Block {
 		Registration::init();
 	}
 }
-

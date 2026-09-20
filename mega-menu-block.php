@@ -4,7 +4,7 @@
  * Plugin URI:        https://github.com/vigetlabs/mega-menu-block
  * Description:       A custom block that enables mega menu functionality within Navigation blocks, allowing any blocks to be added as children of Navigation items.
  * Version:           1.1.0
- * Requires at least: 6.0
+ * Requires at least: 6.6
  * Requires PHP:      7.4
  * Author:            Viget
  * Author URI:        https://viget.com
