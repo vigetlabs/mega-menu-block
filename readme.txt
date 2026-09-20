@@ -150,6 +150,7 @@ Yes, the Mega Menu honors the Navigation block's submenu settings, including hov
 * Checks GitHub releases for plugin updates from the WordPress dashboard.
 * Stylesheets are now also emitted in RTL variants.
 * Added a POT file, GPL-2.0 license, Composer support, CI, and developer documentation.
+* Added a grouped weekly Dependabot configuration, holding back TypeScript and externalized `@wordpress/*` majors.
 * Updated to @wordpress/scripts 35 and @wordpress/env 11, clearing the outstanding dependency advisories.
 * Raised the minimum WordPress version to 6.6 and tested up to 7.1.
 
