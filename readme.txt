@@ -153,6 +153,7 @@ Yes, the Mega Menu honors the Navigation block's submenu settings, including hov
 * Added a grouped weekly Dependabot configuration, holding back TypeScript and externalized `@wordpress/*` majors.
 * Updated to @wordpress/scripts 35 and @wordpress/env 11, clearing the outstanding dependency advisories.
 * Raised the minimum WordPress version to 6.6 and tested up to 7.1.
+* Marked `build/` and the POT file as generated, so they collapse in pull request diffs and stay out of the repo's language stats.
 
 = 1.0.1 =
 * Fixed a scroll issue in the full site editor.
