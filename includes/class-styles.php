@@ -116,18 +116,18 @@ class Styles {
 	}
 
 	/**
-	 * Get the selector that turns Mega Menus into dropdown panels, in place of the breakpoint.
+	 * Get the selector that turns on dropdowns, used instead of the breakpoint.
 	 *
-	 * For themes that decide when the desktop menu fits themselves, like with a class on
-	 * `html` set by a script. Empty means the breakpoint media query is used.
+	 * Lets a theme decide when its desktop menu shows. For example, a script that adds
+	 * `menu-desktop` to `html` while the menu fits returns `html.menu-desktop` here.
 	 *
-	 * @return string CSS selector, or an empty string.
+	 * @return string CSS selector, or an empty string to use the breakpoint.
 	 */
 	public static function get_dropdown_selector() {
 		/**
-		 * Filters the selector that positions Mega Menus as dropdown panels.
+		 * Filters the selector that turns on dropdowns, used instead of the breakpoint.
 		 *
-		 * @param string $selector CSS selector for an ancestor of the positioning context.
+		 * @param string $selector Selector for an element that contains the positioning context, like `html.menu-desktop`.
 		 */
 		$selector = apply_filters( 'mega_menu_block_dropdown_selector', '' );
 
@@ -145,7 +145,7 @@ class Styles {
 		$breakpoint = self::get_breakpoint();
 		$dropdown   = self::get_dropdown_selector();
 
-		// A dropdown selector replaces the media query. :where() keeps it from adding specificity.
+		// With a dropdown selector, the rules below need it instead of the breakpoint. :where() adds no specificity.
 		if ( '' !== $dropdown ) {
 			$context = ":where({$dropdown}) {$context}";
 		}
@@ -180,6 +180,7 @@ class Styles {
 }
 CSS;
 
+		// Without a dropdown selector, the rules only apply at and above the breakpoint.
 		return '' !== $dropdown ? $css : "@media (min-width: {$breakpoint}) {\n{$css}\n}";
 	}
 
