@@ -1,7 +1,5 @@
 /**
  * Mega Menu Block Editor Script
- *
- * @package
  */
 
 import { registerBlockType, createBlock } from '@wordpress/blocks';

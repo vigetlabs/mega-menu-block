@@ -116,6 +116,26 @@ class Styles {
 	}
 
 	/**
+	 * Get the selector that turns on dropdowns, used instead of the breakpoint.
+	 *
+	 * Lets a theme decide when its desktop menu shows. For example, a script that adds
+	 * `menu-desktop` to `html` while the menu fits returns `html.menu-desktop` here. The
+	 * editor never gets that class, so themes return `''` there to keep the breakpoint.
+	 *
+	 * @return string CSS selector, or an empty string to use the breakpoint.
+	 */
+	public static function get_dropdown_selector() {
+		/**
+		 * Filters the selector that turns on dropdowns, used instead of the breakpoint.
+		 *
+		 * @param string $selector Selector for an element that contains the positioning context, like `html.menu-desktop`.
+		 */
+		$selector = apply_filters( 'mega_menu_block_dropdown_selector', '' );
+
+		return self::sanitize_css_value( $selector );
+	}
+
+	/**
 	 * Build the inline CSS.
 	 *
 	 * @return string CSS.
@@ -124,6 +144,12 @@ class Styles {
 		$context    = self::get_positioning_context();
 		$max_width  = self::get_max_width();
 		$breakpoint = self::get_breakpoint();
+		$dropdown   = self::get_dropdown_selector();
+
+		// With a dropdown selector, the rules below need it instead of the breakpoint. :where() adds no specificity.
+		if ( '' !== $dropdown ) {
+			$context = ":where({$dropdown}) {$context}";
+		}
 
 		/*
 		 * Everything between the positioning context and the submenu container has to be
@@ -136,23 +162,81 @@ class Styles {
 		// Repeat the submenu class so these rules outweigh core and theme Navigation styles.
 		$submenu = str_repeat( '.wp-block-navigation__submenu-container', 3 );
 
+		$css = <<<CSS
+{$context} {
+	position: relative;
+}
+
+{$context} {$ancestors} {
+	position: static;
+}
+
+{$context} {$submenu}:has(.wp-block-mega-menu) {
+	top: 100%;
+	left: 0;
+	right: 0;
+	width: auto;
+	min-width: 0;
+	max-width: {$max_width};
+}
+CSS;
+
+		if ( self::has_transitions() ) {
+			$css .= "\n\n" . self::get_transition_css( $context, $submenu );
+		}
+
+		// Without a dropdown selector, the rules only apply at and above the breakpoint.
+		return '' !== $dropdown ? $css : "@media (min-width: {$breakpoint}) {\n{$css}\n}";
+	}
+
+	/**
+	 * Whether Mega Menus crossfade as they open and close.
+	 *
+	 * @return bool
+	 */
+	public static function has_transitions() {
+		/**
+		 * Filters whether Mega Menus crossfade as they open and close.
+		 *
+		 * @param bool $transitions Whether to add the transitions.
+		 */
+		return (bool) apply_filters( 'mega_menu_block_transitions', true );
+	}
+
+	/**
+	 * Build the CSS that crossfades panels.
+	 *
+	 * Core collapses a closed submenu to 0×0, so a panel vanished before it could fade. A closed
+	 * panel keeps its size and holds for 150ms before it fades: on click, core closes the open
+	 * panel on mousedown and opens the next one on mouseup, so the next one fades in over it.
+	 * A closing click panel ignores the pointer, so it can't catch a quick second click. Hover
+	 * panels still catch it, which gives them a little hover intent.
+	 *
+	 * @param string $context Positioning context selector.
+	 * @param string $submenu Submenu container selector.
+	 * @return string CSS.
+	 */
+	private static function get_transition_css( $context, $submenu ) {
+		$panel = "{$context} {$submenu}:has(.wp-block-mega-menu)";
+
 		return <<<CSS
-@media (min-width: {$breakpoint}) {
-	{$context} {
-		position: relative;
+@media (prefers-reduced-motion: no-preference) {
+	{$panel} {
+		height: auto;
+		overflow: visible;
+		transition: opacity 200ms ease 150ms, visibility 0s linear 350ms;
 	}
 
-	{$context} {$ancestors} {
-		position: static;
+	{$context} .open-on-click > {$submenu}:has(.wp-block-mega-menu) {
+		pointer-events: none;
 	}
 
-	{$context} {$submenu}:has(.wp-block-mega-menu) {
-		top: 100%;
-		left: 0;
-		right: 0;
-		width: auto;
-		min-width: 0;
-		max-width: {$max_width};
+	{$context} .wp-block-navigation-submenu__toggle[aria-expanded="true"] ~ {$submenu}:has(.wp-block-mega-menu),
+	{$context} .has-child:not(.open-on-click):hover > {$submenu}:has(.wp-block-mega-menu),
+	{$context} .has-child:not(.open-on-click):focus-within > {$submenu}:has(.wp-block-mega-menu) {
+		z-index: 3;
+		pointer-events: auto;
+		transition: opacity 200ms ease, visibility 0s;
 	}
 }
 CSS;
