@@ -180,7 +180,57 @@ class Styles {
 }
 CSS;
 
+		if ( self::has_transitions() ) {
+			$css .= "\n\n" . self::get_transition_css( $context, $submenu );
+		}
+
 		return '' !== $dropdown ? $css : "@media (min-width: {$breakpoint}) {\n{$css}\n}";
+	}
+
+	/**
+	 * Whether Mega Menus crossfade as they open and close.
+	 *
+	 * @return bool
+	 */
+	public static function has_transitions() {
+		/**
+		 * Filters whether Mega Menus crossfade as they open and close.
+		 *
+		 * @param bool $transitions Whether to add the transitions.
+		 */
+		return (bool) apply_filters( 'mega_menu_block_transitions', true );
+	}
+
+	/**
+	 * Build the CSS that crossfades panels.
+	 *
+	 * Core collapses a closed submenu to 0×0, so a panel vanished before it could fade. A closed
+	 * panel keeps its size and holds for 150ms before it fades: on click, core closes the open
+	 * panel on mousedown and opens the next one on mouseup, so the next one fades in over it.
+	 *
+	 * @param string $context Positioning context selector.
+	 * @param string $submenu Submenu container selector.
+	 * @return string CSS.
+	 */
+	private static function get_transition_css( $context, $submenu ) {
+		$panel = "{$context} {$submenu}:has(.wp-block-mega-menu)";
+
+		return <<<CSS
+@media (prefers-reduced-motion: no-preference) {
+	{$panel} {
+		height: auto;
+		overflow: visible;
+		transition: opacity 200ms ease 150ms, visibility 0s linear 350ms;
+	}
+
+	{$context} .wp-block-navigation-submenu__toggle[aria-expanded="true"] ~ {$submenu}:has(.wp-block-mega-menu),
+	{$context} .has-child:not(.open-on-click):hover > {$submenu}:has(.wp-block-mega-menu),
+	{$context} .has-child:not(.open-on-click):focus-within > {$submenu}:has(.wp-block-mega-menu) {
+		z-index: 3;
+		transition: opacity 200ms ease, visibility 0s;
+	}
+}
+CSS;
 	}
 
 	/**

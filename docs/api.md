@@ -41,6 +41,17 @@ Selector that positions Mega Menus as dropdown panels, in place of the breakpoin
 add_filter( 'mega_menu_block_dropdown_selector', fn() => 'html.menu-desktop' );
 ```
 
+### `mega_menu_block_transitions`
+
+Whether Mega Menus crossfade as they open and close. A closing panel holds for 150ms, then fades over 200ms, and the opening one fades in on top of it, so switching menus never shows the page in between. Without it, panels switch instantly. Visitors who prefer reduced motion always get the instant switch.
+
+- **Default:** `true`
+- **Returns:** `bool`
+
+```php
+add_filter( 'mega_menu_block_transitions', '__return_false' );
+```
+
 ### `mega_menu_block_max_width`
 
 Caps the panel's width inside the positioning context.
