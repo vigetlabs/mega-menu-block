@@ -23,7 +23,7 @@
 	},
 	"devDependencies": {
 		"@wordpress/env": "^11.15.0",
-		"@wordpress/scripts": "^35.0.0",
+		"@wordpress/scripts": "^36.0.0",
 		"raw-loader": "^4.0.2",
 		"typescript": "^5.9.3",
 		"webpack-remove-empty-scripts": "^1.0.4"
