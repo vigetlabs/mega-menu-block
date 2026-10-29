@@ -30,6 +30,17 @@ Minimum viewport width at which Mega Menus are positioned as dropdown panels. Be
 add_filter( 'mega_menu_block_breakpoint', fn() => '880px' );
 ```
 
+### `mega_menu_block_dropdown_selector`
+
+Selector that positions Mega Menus as dropdown panels, in place of the breakpoint. For themes that decide when the desktop menu fits themselves, like with a class a script adds to `html`. When it's set, the breakpoint isn't used.
+
+- **Default:** `''` (use the breakpoint)
+- **Returns:** `string` - a selector for an ancestor of the positioning context
+
+```php
+add_filter( 'mega_menu_block_dropdown_selector', fn() => 'html.menu-desktop' );
+```
+
 ### `mega_menu_block_max_width`
 
 Caps the panel's width inside the positioning context.

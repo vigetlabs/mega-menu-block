@@ -116,6 +116,25 @@ class Styles {
 	}
 
 	/**
+	 * Get the selector that turns Mega Menus into dropdown panels, in place of the breakpoint.
+	 *
+	 * For themes that decide when the desktop menu fits themselves, like with a class on
+	 * `html` set by a script. Empty means the breakpoint media query is used.
+	 *
+	 * @return string CSS selector, or an empty string.
+	 */
+	public static function get_dropdown_selector() {
+		/**
+		 * Filters the selector that positions Mega Menus as dropdown panels.
+		 *
+		 * @param string $selector CSS selector for an ancestor of the positioning context.
+		 */
+		$selector = apply_filters( 'mega_menu_block_dropdown_selector', '' );
+
+		return self::sanitize_css_value( $selector );
+	}
+
+	/**
 	 * Build the inline CSS.
 	 *
 	 * @return string CSS.
@@ -124,6 +143,12 @@ class Styles {
 		$context    = self::get_positioning_context();
 		$max_width  = self::get_max_width();
 		$breakpoint = self::get_breakpoint();
+		$dropdown   = self::get_dropdown_selector();
+
+		// A dropdown selector replaces the media query. :where() keeps it from adding specificity.
+		if ( '' !== $dropdown ) {
+			$context = ":where({$dropdown}) {$context}";
+		}
 
 		/*
 		 * Everything between the positioning context and the submenu container has to be
@@ -136,26 +161,26 @@ class Styles {
 		// Repeat the submenu class so these rules outweigh core and theme Navigation styles.
 		$submenu = str_repeat( '.wp-block-navigation__submenu-container', 3 );
 
-		return <<<CSS
-@media (min-width: {$breakpoint}) {
-	{$context} {
-		position: relative;
-	}
+		$css = <<<CSS
+{$context} {
+	position: relative;
+}
 
-	{$context} {$ancestors} {
-		position: static;
-	}
+{$context} {$ancestors} {
+	position: static;
+}
 
-	{$context} {$submenu}:has(.wp-block-mega-menu) {
-		top: 100%;
-		left: 0;
-		right: 0;
-		width: auto;
-		min-width: 0;
-		max-width: {$max_width};
-	}
+{$context} {$submenu}:has(.wp-block-mega-menu) {
+	top: 100%;
+	left: 0;
+	right: 0;
+	width: auto;
+	min-width: 0;
+	max-width: {$max_width};
 }
 CSS;
+
+		return '' !== $dropdown ? $css : "@media (min-width: {$breakpoint}) {\n{$css}\n}";
 	}
 
 	/**
