@@ -141,6 +141,12 @@ Yes, the Mega Menu honors the Navigation block's submenu settings, including hov
 
 == Changelog ==
 
+= 1.2.0 =
+* Mega Menu panels crossfade as they open and close, so switching menus no longer flashes the page underneath. Visitors who prefer reduced motion get the instant switch.
+* Added the `mega_menu_block_transitions` PHP filter to turn the crossfade off.
+* Added the `mega_menu_block_dropdown_selector` PHP filter, a selector that positions Mega Menus as dropdown panels in place of the breakpoint.
+* Updated to @wordpress/scripts 36 and @wordpress/env 12, clearing the outstanding dependency advisories.
+
 = 1.1.0 =
 * The default inner blocks template is now a single empty paragraph instead of a three-column layout.
 * Mega Menus now span a positioning context wider than their Navigation item, in the editor and on the front end.
