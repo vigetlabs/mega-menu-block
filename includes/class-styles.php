@@ -119,7 +119,8 @@ class Styles {
 	 * Get the selector that turns on dropdowns, used instead of the breakpoint.
 	 *
 	 * Lets a theme decide when its desktop menu shows. For example, a script that adds
-	 * `menu-desktop` to `html` while the menu fits returns `html.menu-desktop` here.
+	 * `menu-desktop` to `html` while the menu fits returns `html.menu-desktop` here. The
+	 * editor never gets that class, so themes return `''` there to keep the breakpoint.
 	 *
 	 * @return string CSS selector, or an empty string to use the breakpoint.
 	 */
