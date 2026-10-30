@@ -192,7 +192,13 @@ class Renderer {
 			return $inner_blocks;
 		}
 
-		$storage_key       = 'nav-post-' . $menu_ref;
+		$storage_key = 'nav-post-' . $menu_ref;
+
+		// A menu nested in itself, directly or through another menu, is left for core to skip.
+		if ( isset( self::$nested_navigation_blocks[ $storage_key ] ) ) {
+			return $inner_blocks;
+		}
+
 		$nested_blocks     = [];
 		$masked_blocks     = [];
 		$placeholder_index = 0;
@@ -236,6 +242,11 @@ class Renderer {
 	public static function inject_nested_navigation_blocks( $block_content, $block ) {
 		// Only process core/navigation blocks.
 		if ( empty( $block['blockName'] ) || 'core/navigation' !== $block['blockName'] ) {
+			return $block_content;
+		}
+
+		// A copy of the menu nested in itself shares its ref, so only output with placeholders is filled.
+		if ( false === strpos( $block_content, '<!-- mega-menu-nested-nav-placeholder-' ) ) {
 			return $block_content;
 		}
 
