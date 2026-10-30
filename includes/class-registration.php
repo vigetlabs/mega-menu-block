@@ -35,17 +35,9 @@ class Registration {
 		// Explicitly allow block in Navigation block children.
 		add_filter( 'block_editor_settings_all', [ __CLASS__, 'allow_in_navigation' ], 10, 2 );
 
-		// Filter navigation post content to mask nested Navigation blocks.
-		// Use get_post filter to modify post content when WordPress reads it.
-		add_filter( 'get_post', [ Renderer::class, 'filter_navigation_post_content' ], 10, 2 );
-
-		// Mask nested Navigation blocks during parent Navigation block rendering.
-		// Use priority 1 to run VERY early, before WordPress's own processing.
-		add_filter( 'render_block_data', [ Renderer::class, 'mask_nested_navigation_blocks' ], 1 );
-
-		// Allow Navigation blocks with nested Navigation blocks to render.
-		// Use priority 10 to run AFTER mask_nested_navigation_blocks has stored the nested blocks.
-		add_filter( 'pre_render_block', [ Renderer::class, 'allow_nested_navigation_rendering' ], 10, 3 );
+		// Mask Navigation blocks nested in Mega Menus, which core won't render inside another Navigation block.
+		add_filter( 'render_block_data', [ Renderer::class, 'track_navigation_ref' ], 1 );
+		add_filter( 'block_core_navigation_render_inner_blocks', [ Renderer::class, 'mask_navigation_inner_blocks' ] );
 
 		// Inject nested Navigation blocks back into rendered output.
 		// Use priority 20 to run after WordPress renders the block.
