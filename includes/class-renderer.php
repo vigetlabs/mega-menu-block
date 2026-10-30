@@ -10,7 +10,6 @@ namespace MegaMenuBlock;
 use Exception;
 use WP_Block;
 use WP_Block_List;
-use WP_Post;
 
 // Exit if accessed directly.
 if ( ! \defined( 'ABSPATH' ) ) {
@@ -30,18 +29,11 @@ class Renderer {
 	private static $nested_navigation_blocks = [];
 
 	/**
-	 * Track which Navigation blocks are currently being rendered to avoid recursion.
+	 * Menu ref of the Navigation block about to render.
 	 *
-	 * @var array
+	 * @var int|null
 	 */
-	private static $rendering_navigation_blocks = [];
-
-	/**
-	 * Temporary storage for masked post content during rendering.
-	 *
-	 * @var array
-	 */
-	private static $masked_post_content = [];
+	private static $current_menu_ref = null;
 
 	/**
 	 * Render the mega menu block on the frontend.
@@ -162,205 +154,76 @@ class Renderer {
 	}
 
 	/**
-	 * Filter navigation post content to mask nested Navigation blocks.
-	 * This modifies the post object's content before WordPress uses it to render Navigation blocks.
+	 * Hold the menu ref of the Navigation block about to render.
 	 *
-	 * @param WP_Post $post The post object.
-	 * @param string  $context The context (not used but required by filter).
-	 * @return WP_Post Modified post object.
-	 */
-	public static function filter_navigation_post_content( $post, $context = null ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the filter signature.
-		// Only process wp_navigation post type.
-		if ( ! $post || 'wp_navigation' !== $post->post_type ) {
-			return $post;
-		}
-
-		// Only modify if we're in a frontend rendering context.
-		if ( is_admin() && ! wp_doing_ajax() ) {
-			return $post;
-		}
-
-		// Check if we've already stored masked content for this post.
-		// If so, use it directly.
-		if ( ! empty( self::$masked_post_content[ $post->ID ] ) ) {
-			$post->post_content = self::$masked_post_content[ $post->ID ];
-			return $post;
-		}
-
-		// Check if this navigation post contains nested Navigation blocks in Mega Menus.
-		$parsed_blocks = parse_blocks( $post->post_content );
-		$storage_key   = 'nav-post-' . $post->ID;
-
-		$result = self::extract_nested_navigation_blocks( $parsed_blocks, $storage_key );
-
-		if ( ! empty( $result['nested_blocks'] ) ) {
-			// Store nested blocks.
-			self::$nested_navigation_blocks[ $storage_key ] = array(
-				'nested_blocks' => $result['nested_blocks'],
-				'menu_ref'      => $post->ID,
-				'masked_blocks' => $result['masked_blocks'],
-			);
-
-			// Rebuild content with masked blocks (nested Navigation blocks replaced with placeholders).
-			$masked_content = '';
-			foreach ( $result['masked_blocks'] as $block ) {
-				$masked_content .= serialize_block( $block );
-			}
-
-			// Store masked content.
-			self::$masked_post_content[ $post->ID ] = $masked_content;
-
-			// Modify the post object's content.
-			$post->post_content = $masked_content;
-		}
-
-		return $post;
-	}
-
-	/**
-	 * Modify block data to mask nested Navigation blocks during parent Navigation rendering.
-	 *
-	 * This filter temporarily replaces nested Navigation blocks with placeholder blocks
-	 * so the parent Navigation block can render, then we'll restore them.
+	 * Core's `block_core_navigation_render_inner_blocks` filter doesn't pass the block, so
+	 * mask_navigation_inner_blocks() reads the ref from here.
 	 *
 	 * @param array $parsed_block The parsed block data.
-	 * @return array Modified block data.
+	 * @return array Unchanged block data.
 	 */
-	public static function mask_nested_navigation_blocks( $parsed_block ) {
-		// Only process core/navigation blocks.
+	public static function track_navigation_ref( $parsed_block ) {
 		if ( empty( $parsed_block['blockName'] ) || 'core/navigation' !== $parsed_block['blockName'] ) {
 			return $parsed_block;
 		}
 
-		// Generate a unique ID for this Navigation block instance.
-		$block_id = md5( wp_json_encode( $parsed_block ) );
-
-		// Check if we're already rendering this block (avoid recursion).
-		if ( \in_array( $block_id, self::$rendering_navigation_blocks, true ) ) {
-			return $parsed_block;
-		}
-
-		// Navigation blocks load menu items from wp_navigation post, not innerBlocks.
-		// We need to check the navigation post content for nested Navigation blocks.
-		$menu_ref = $parsed_block['attrs']['ref'] ?? null;
-		if ( $menu_ref ) {
-			$navigation_post = get_post( $menu_ref );
-			if ( $navigation_post && 'wp_navigation' === $navigation_post->post_type ) {
-				// Parse the navigation post content to find nested Navigation blocks in Mega Menus.
-				$parsed_blocks = parse_blocks( $navigation_post->post_content );
-
-				// Check for nested Navigation blocks in Mega Menus.
-				$result = self::extract_nested_navigation_blocks( $parsed_blocks, $block_id );
-
-				if ( ! empty( $result['nested_blocks'] ) ) {
-					// Store the nested Navigation blocks for later rendering.
-					// Use menu ref as the key for easier lookup.
-					$storage_key                                    = 'nav-post-' . $menu_ref;
-					self::$nested_navigation_blocks[ $storage_key ] = array(
-						'nested_blocks' => $result['nested_blocks'],
-						'menu_ref'      => $menu_ref,
-						'masked_blocks' => $result['masked_blocks'],
-					);
-
-					// Rebuild the navigation post content with masked blocks.
-					$masked_content = '';
-					foreach ( $result['masked_blocks'] as $block ) {
-						$masked_content .= serialize_block( $block );
-					}
-
-					// Store masked content for use in get_post filter.
-					self::$masked_post_content[ $menu_ref ] = $masked_content;
-
-					// Temporarily modify the post content and update cache.
-					$navigation_post->post_content = $masked_content;
-
-					// Update WordPress object cache to ensure our modified version is used.
-					wp_cache_set( $menu_ref, $navigation_post, 'posts' );
-				}
-			}
-		}
+		self::$current_menu_ref = $parsed_block['attrs']['ref'] ?? null;
 
 		return $parsed_block;
 	}
 
 	/**
-	 * Allow Navigation blocks with nested Navigation blocks to render.
+	 * Replace Navigation blocks nested in Mega Menus with placeholders.
 	 *
-	 * This filter ensures that Navigation blocks can render even when they contain
-	 * nested Navigation blocks via Mega Menu blocks. We render the parent first,
-	 * then inject the nested Navigation blocks back.
+	 * Core renders nothing for a Navigation block that contains another one, so the nested
+	 * blocks are masked here and put back by inject_nested_navigation_blocks(). Only this
+	 * render's block list changes. The menu post and the object cache are left alone.
 	 *
-	 * @param string|null $pre_render The pre-rendered block content. Return null to allow normal rendering.
-	 * @param array       $parsed_block The parsed block data.
-	 * @param WP_Block    $block The block instance.
-	 * @return string|null Return null to allow normal rendering, or a string to replace the output.
+	 * @param WP_Block_List $inner_blocks The Navigation block's inner blocks.
+	 * @return WP_Block_List Inner blocks with nested Navigation blocks masked.
 	 */
-	public static function allow_nested_navigation_rendering( $pre_render, $parsed_block, $block ) {
-		// Only process core/navigation blocks.
-		if ( empty( $parsed_block['blockName'] ) || 'core/navigation' !== $parsed_block['blockName'] ) {
-			return $pre_render;
+	public static function mask_navigation_inner_blocks( $inner_blocks ) {
+		$menu_ref = self::$current_menu_ref;
+
+		// Only the first call after track_navigation_ref() belongs to that block.
+		self::$current_menu_ref = null;
+
+		if ( ! $menu_ref || ! $inner_blocks instanceof WP_Block_List ) {
+			return $inner_blocks;
 		}
 
-		// Generate a unique ID for this Navigation block instance.
-		$block_id = md5( wp_json_encode( $parsed_block ) );
+		$storage_key       = 'nav-post-' . $menu_ref;
+		$nested_blocks     = [];
+		$masked_blocks     = [];
+		$placeholder_index = 0;
 
-		// Also check by menu ref for stored blocks.
-		$menu_ref        = $parsed_block['attrs']['ref'] ?? null;
-		$stored_block_id = $menu_ref ? 'nav-post-' . $menu_ref : null;
+		foreach ( $inner_blocks as $offset => $inner_block ) {
+			$result = self::extract_nested_navigation_blocks( [ $inner_block->parsed_block ], $storage_key, false, $placeholder_index );
 
-		// Check if we have nested Navigation blocks stored (prefer stored_block_id).
-		$has_nested      = false;
-		$nested_data     = null;
-		$actual_block_id = null;
-
-		if ( $stored_block_id && ! empty( self::$nested_navigation_blocks[ $stored_block_id ] ) ) {
-			$nested_data     = self::$nested_navigation_blocks[ $stored_block_id ];
-			$actual_block_id = $stored_block_id;
-			$has_nested      = true;
-		} elseif ( ! empty( self::$nested_navigation_blocks[ $block_id ] ) ) {
-			$nested_data     = self::$nested_navigation_blocks[ $block_id ];
-			$actual_block_id = $block_id;
-			$has_nested      = true;
-		}
-
-		// If we have nested blocks, we need to manually render the Navigation block
-		// with modified content to prevent WordPress from blocking it.
-		if ( ! $has_nested || empty( $nested_data['nested_blocks'] ) ) {
-			return null;
-		}
-
-		// Mark that we're rendering this Navigation block.
-		self::$rendering_navigation_blocks[] = $actual_block_id;
-
-		// The masked content should already be stored in self::$masked_post_content
-		// and the post cache should be updated. Render normally and WordPress should use it.
-		$menu_ref = $parsed_block['attrs']['ref'] ?? null;
-		if ( ! $menu_ref || empty( self::$masked_post_content[ $menu_ref ] ) ) {
-			return null;
-		}
-
-		$rendered = null;
-
-		// Ensure $block is not null and is a valid WP_Block instance.
-		if ( ! $block || ! $block instanceof WP_Block ) {
-			return null;
-		}
-
-		try {
-			// Ensure the post in cache has masked content.
-			$cached_post = wp_cache_get( $menu_ref, 'posts' );
-			if ( $cached_post && $cached_post->post_content !== self::$masked_post_content[ $menu_ref ] ) {
-				$cached_post->post_content = self::$masked_post_content[ $menu_ref ];
-				wp_cache_set( $menu_ref, $cached_post, 'posts' );
+			if ( empty( $result['nested_blocks'] ) ) {
+				continue;
 			}
 
-			$rendered = $block->render();
-		} catch ( Exception $e ) {
-			return null;
+			$nested_blocks            = array_merge( $nested_blocks, $result['nested_blocks'] );
+			$masked_blocks[ $offset ] = $result['masked_blocks'][0];
+			$placeholder_index        = $result['next_placeholder_index'];
 		}
 
-		// Return the rendered content - we'll inject nested blocks in render_block filter.
-		return $rendered;
+		if ( empty( $nested_blocks ) ) {
+			return $inner_blocks;
+		}
+
+		self::$nested_navigation_blocks[ $storage_key ] = [
+			'nested_blocks' => $nested_blocks,
+			'menu_ref'      => $menu_ref,
+		];
+
+		// Setting a parsed block makes the list rebuild it with the Navigation block's context.
+		foreach ( $masked_blocks as $offset => $masked_block ) {
+			$inner_blocks[ $offset ] = $masked_block;
+		}
+
+		return $inner_blocks;
 	}
 
 	/**
@@ -422,20 +285,8 @@ class Renderer {
 			}
 		}
 
-		// Clean up stored nested blocks and masked content.
+		// Clean up stored nested blocks.
 		unset( self::$nested_navigation_blocks[ $actual_block_id ] );
-
-		// Clean up masked post content.
-		$menu_ref = $block['attrs']['ref'] ?? null;
-		if ( $menu_ref && isset( self::$masked_post_content[ $menu_ref ] ) ) {
-			unset( self::$masked_post_content[ $menu_ref ] );
-		}
-
-		// Remove from rendering list.
-		$key = array_search( $actual_block_id, self::$rendering_navigation_blocks, true );
-		if ( false !== $key ) {
-			unset( self::$rendering_navigation_blocks[ $key ] );
-		}
 
 		return $block_content;
 	}
