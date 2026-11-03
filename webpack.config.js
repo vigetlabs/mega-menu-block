@@ -1,7 +1,7 @@
 /**
  * Webpack Configuration
  *
- * Customizes @wordpress/scripts webpack config to output separate CSS files.
+ * Customizes `@wordpress/scripts` webpack config to output separate CSS files.
  *
  * @package
  */
