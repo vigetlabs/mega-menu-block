@@ -166,9 +166,9 @@ registerBlockType( 'mega-menu-block/mega-menu', {
 /**
  * Helper function to get the ancestor Navigation block and its menu ID.
  *
- * @param {string}   clientId        The current block's client ID.
- * @param {Function} getBlock        Get block function from store.
- * @param {Function} getBlockParents Get block parents function from store.
+ * @param {string}                                             clientId        The current block's client ID.
+ * @param {(clientId: string) => ?Object}                      getBlock        Get block function from store.
+ * @param {(clientId: string, ascending: boolean) => string[]} getBlockParents Get block parents function from store.
  * @return {Object|null} Object with navigationBlock and menuId, or null if not found.
  */
 function getAncestorNavigationBlock( clientId, getBlock, getBlockParents ) {
@@ -221,9 +221,9 @@ function getAncestorNavigationBlock( clientId, getBlock, getBlockParents ) {
 /**
  * Check if a Navigation block is inside a Mega Menu (or any child of a Mega Menu).
  *
- * @param {string}   clientId        The Navigation block's client ID.
- * @param {Function} getBlock        Get block function from store.
- * @param {Function} getBlockParents Get block parents function from store.
+ * @param {string}                                             clientId        The Navigation block's client ID.
+ * @param {(clientId: string) => ?Object}                      getBlock        Get block function from store.
+ * @param {(clientId: string, ascending: boolean) => string[]} getBlockParents Get block parents function from store.
  * @return {boolean} True if nested inside a Mega Menu block.
  */
 function isInsideMegaMenu( clientId, getBlock, getBlockParents ) {
@@ -255,10 +255,10 @@ function isInsideMegaMenu( clientId, getBlock, getBlockParents ) {
  * Get a safe default menu ID that's different from the ancestor menu.
  * First tries to reuse an existing unused menu, then creates a new one if needed.
  *
- * @param {number}   ancestorMenuId  The ancestor Navigation block's menu ID.
- * @param {Array}    navigationMenus Available navigation menus.
- * @param {Function} createMenu      Function to create a new menu.
- * @param {Function} getBlocks       Function to get all blocks to check for menu usage.
+ * @param {number}                ancestorMenuId  The ancestor Navigation block's menu ID.
+ * @param {Array}                 navigationMenus Available navigation menus.
+ * @param {() => Promise<number>} createMenu      Function to create a new menu.
+ * @param {() => Object[]}        getBlocks       Function to get all blocks to check for menu usage.
  * @return {Promise<number>} A safe menu ID.
  */
 async function getSafeDefaultMenu(
@@ -344,8 +344,8 @@ async function createNewMenu( dispatchObject ) {
 /**
  * Filter Navigation block edit component to handle menu selection.
  *
- * @param {Function} BlockEdit Original block edit component.
- * @return {Function} Enhanced block edit component.
+ * @param {import('react').ComponentType} BlockEdit Original block edit component.
+ * @return {import('react').ComponentType} Enhanced block edit component.
  */
 function enhanceNavigationBlockEdit( BlockEdit ) {
 	return ( props ) => {
@@ -470,8 +470,8 @@ function enhanceNavigationBlockEdit( BlockEdit ) {
  * Add "Add Mega Menu" toolbar button to Navigation Link and Navigation Submenu blocks.
  * This allows users to directly insert a Mega Menu block as a child, similar to "Add Submenu".
  *
- * @param {Function} BlockEdit Original block edit component.
- * @return {Function} Enhanced block edit component.
+ * @param {import('react').ComponentType} BlockEdit Original block edit component.
+ * @return {import('react').ComponentType} Enhanced block edit component.
  */
 function addMegaMenuToolbarButton( BlockEdit ) {
 	return ( props ) => {
