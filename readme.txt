@@ -141,6 +141,10 @@ Yes, the Mega Menu honors the Navigation block's submenu settings, including hov
 
 == Changelog ==
 
+= 1.2.1 =
+* Fixed Navigation blocks nested in a Mega Menu disappearing after the first page load on sites with a persistent object cache.
+* Updated to @wordpress/scripts 37.
+
 = 1.2.0 =
 * Mega Menu panels crossfade as they open and close, so switching menus no longer flashes the page underneath. Visitors who prefer reduced motion get the instant switch.
 * Added the `mega_menu_block_transitions` PHP filter to turn the crossfade off.
